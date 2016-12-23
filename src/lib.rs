@@ -1,5 +1,8 @@
-#![feature(custom_derive, plugin, question_mark)]
-#![plugin(serde_macros)]
+#![feature(custom_attribute, custom_derive, plugin, proc_macro)]
+#![plugin(serde_derive)]
+
+#[macro_use]
+extern crate serde_derive;
 
 extern crate base64;
 extern crate chrono;
