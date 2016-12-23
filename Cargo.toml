@@ -1,7 +1,12 @@
 [package]
-authors = ["Luqman Aden <me@luqman.ca>"]
+authors = ["Luqman Aden <me@luqman.ca>", "Kenan Sulayman <kenan@sly.mn>"]
 name = "gdax-client"
-version = "0.1.0"
+version = "1.0.1"
+
+description = "Coinbase GDAX™ API client (tested with rust nightly 0.15.0)"
+license = "MIT"
+
+repository = "https://github.com/KenanSulayman/gdax-client.git"
 
 [dependencies]
 aster = "0.36.0"
