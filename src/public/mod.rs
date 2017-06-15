@@ -1,6 +1,8 @@
 use chrono::{DateTime, UTC};
 use hyper::client::Client as HttpClient;
 use hyper::header::UserAgent;
+use hyper::net::HttpsConnector;
+use hyper_native_tls::NativeTlsClient;
 use serde::Deserialize;
 use serde_json::de;
 use uuid::Uuid;
@@ -21,22 +23,22 @@ pub struct Product {
     pub id: String,
     pub base_currency: String,
     pub quote_currency: String,
-    pub base_min_size: f64,
-    pub base_max_size: f64,
-    pub quote_increment: f64
+    pub base_min_size: String,
+    pub base_max_size: String,
+    pub quote_increment: String
 }
 
 #[derive(Deserialize, Debug)]
 pub struct BookEntry {
-    pub price: f64,
-    pub size: f64,
+    pub price: String,
+    pub size: String,
     pub num_orders: u64
 }
 
 #[derive(Deserialize, Debug)]
 pub struct FullBookEntry {
-    pub price: f64,
-    pub size: f64,
+    pub price: String,
+    pub size: String,
     pub order_id: Uuid
 }
 
@@ -50,11 +52,11 @@ pub struct OrderBook<T> {
 #[derive(Deserialize, Debug)]
 pub struct Tick {
     pub trade_id: u64,
-    pub price: f64,
-    pub size: f64,
-    pub bid: f64,
-    pub ask: f64,
-    pub volume: f64,
+    pub price: String,
+    pub size: String,
+    pub bid: String,
+    pub ask: String,
+    pub volume: String,
     pub time: DateTime<UTC>
 }
 
@@ -62,8 +64,8 @@ pub struct Tick {
 pub struct Trade {
     pub time: DateTime<UTC>,
     pub trade_id: u64,
-    pub price: f64,
-    pub size: f64,
+    pub price: String,
+    pub size: String,
     pub side: Side,
 }
 
@@ -79,17 +81,17 @@ pub struct Candle {
 
 #[derive(Deserialize, Debug)]
 pub struct Stats {
-    pub open: f64,
-    pub high: f64,
-    pub low: f64,
-    pub volume: f64
+    pub open: String,
+    pub high: String,
+    pub low: String,
+    pub volume: String
 }
 
 #[derive(Deserialize, Debug)]
 pub struct Currency {
     pub id: String,
     pub name: String,
-    pub min_size: f64
+    pub min_size: String
 }
 
 #[derive(Deserialize, Debug)]
@@ -104,13 +106,16 @@ pub struct Client {
 
 impl Client {
     pub fn new() -> Client {
+        let ssl = NativeTlsClient::new().expect("Tls Client");
+        let connector = HttpsConnector::new(ssl);
+
         Client {
-            http_client: HttpClient::new()
+            http_client: HttpClient::with_connector(connector)
         }
     }
 
     fn get_and_decode<T>(&self, url: &str) -> Result<T, Error>
-        where T: Deserialize
+        where for<'de> T: Deserialize<'de>
     {
 
         let mut res = self.http_client.get(url)

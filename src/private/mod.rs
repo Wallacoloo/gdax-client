@@ -6,8 +6,11 @@ use crypto::sha2::Sha256;
 use hyper::client::Client as HttpClient;
 use hyper::header::{Accept, ContentType, Headers, qitem, UserAgent};
 use hyper::mime::{Mime, TopLevel, SubLevel};
+use hyper::net::HttpsConnector;
+use hyper_native_tls::NativeTlsClient;
 use serde::{self, Deserialize, Serialize};
 use serde_json::{de, ser};
+use std::fmt;
 use std::ops::Deref;
 use time::get_time;
 use uuid::Uuid;
@@ -66,25 +69,30 @@ pub enum EntryType {
 // We manually implement Deserialize for EntryType here
 // because the default encoding/decoding scheme that derive
 // gives us isn't the straightforward mapping unfortunately
-impl serde::Deserialize for EntryType {
-    fn deserialize<D>(deserializer: &mut D) -> Result<EntryType, D::Error>
-        where D: serde::Deserializer {
+impl<'de> serde::Deserialize<'de> for EntryType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: serde::Deserializer<'de> {
 
         struct EntryTypeVisitor;
-        impl serde::de::Visitor for EntryTypeVisitor {
+
+        impl<'de> serde::de::Visitor<'de> for EntryTypeVisitor {
             type Value = EntryType;
 
-            fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E>
-                where E: serde::Error {
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("entry type must be either `fee`, `match` or `transfer`")
+            }
+
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                where E: serde::de::Error {
                 match &*v.to_lowercase() {
                     "fee" => Ok(EntryType::Fee),
                     "match" => Ok(EntryType::Match),
                     "transfer" => Ok(EntryType::Transfer),
-                    _ => Err(E::invalid_value("entry type must be either `fee`, `match` or `transfer`"))
+                    _ => Err(E::custom("entry type must be either `fee`, `match` or `transfer`"))
                 }
             }
         }
-        deserializer.deserialize(EntryTypeVisitor)
+        deserializer.deserialize_any(EntryTypeVisitor)
     }
 }
 
@@ -110,24 +118,29 @@ pub enum HoldType {
 // We manually implement Deserialize for HoldType here
 // because the default encoding/decoding scheme that derive
 // gives us isn't the straightforward mapping unfortunately
-impl serde::Deserialize for HoldType {
-    fn deserialize<D>(deserializer: &mut D) -> Result<HoldType, D::Error>
-        where D: serde::Deserializer {
+impl<'de> serde::Deserialize<'de> for HoldType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: serde::Deserializer<'de> {
 
         struct HoldTypeVisitor;
-        impl serde::de::Visitor for HoldTypeVisitor {
+
+        impl<'de> serde::de::Visitor<'de> for HoldTypeVisitor {
             type Value = HoldType;
 
-            fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E>
-                where E: serde::Error {
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("hold type must be either `order` or `transfer`")
+            }
+
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                where E: serde::de::Error {
                 match &*v.to_lowercase() {
                     "order" => Ok(HoldType::Order),
                     "transfer" => Ok(HoldType::Transfer),
-                    _ => Err(E::invalid_value("hold type must be either `order` or `transfer`"))
+                    _ => Err(E::custom("hold type must be either `order` or `transfer`"))
                 }
             }
         }
-        deserializer.deserialize(HoldTypeVisitor)
+        deserializer.deserialize_any(HoldTypeVisitor)
     }
 }
 
@@ -191,11 +204,11 @@ impl NewOrder {
 // We manually implement Serialize for NewOrder since
 // each variant needs to be encoded slightly differently
 impl Serialize for NewOrder {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
+    fn serialize<S>(&self, serializer: S) -> Result<(S::Ok), S::Error>
         where S: serde::Serializer
     {
-        match *self {
-            NewOrder::Limit { side, ref product_id, price, size } => {
+        match self {
+            &NewOrder::Limit { side, ref product_id, price, size } => {
                 // We create a struct representing the JSON
                 // and have Serialize auto derived for that
                 #[derive(Serialize)]
@@ -216,7 +229,7 @@ impl Serialize for NewOrder {
                 }.serialize(serializer)
             }
 
-            NewOrder::Market { side, ref product_id, size_or_funds: SizeOrFunds::Size(size) } => {
+            &NewOrder::Market { side, ref product_id, size_or_funds: SizeOrFunds::Size(size) } => {
                 #[derive(Serialize)]
                 struct MarketOrder<'a> {
                     #[serde(rename = "type")]
@@ -233,7 +246,7 @@ impl Serialize for NewOrder {
                 }.serialize(serializer)
             }
 
-            NewOrder::Market { side, ref product_id, size_or_funds: SizeOrFunds::Funds(funds) } => {
+            &NewOrder::Market { side, ref product_id, size_or_funds: SizeOrFunds::Funds(funds) } => {
                 #[derive(Serialize)]
                 struct MarketOrder<'a> {
                     #[serde(rename = "type")]
@@ -250,7 +263,7 @@ impl Serialize for NewOrder {
                 }.serialize(serializer)
             }
 
-            NewOrder::Stop { side, ref product_id, price, size_or_funds: SizeOrFunds::Size(size) } => {
+            &NewOrder::Stop { side, ref product_id, price, size_or_funds: SizeOrFunds::Size(size) } => {
                 #[derive(Serialize)]
                 struct StopOrder<'a> {
                     #[serde(rename = "type")]
@@ -269,7 +282,7 @@ impl Serialize for NewOrder {
                 }.serialize(serializer)
             }
 
-            NewOrder::Stop { side, ref product_id, price, size_or_funds: SizeOrFunds::Funds(funds) } => {
+            &NewOrder::Stop { side, ref product_id, price, size_or_funds: SizeOrFunds::Funds(funds) } => {
                 #[derive(Serialize)]
                 struct StopOrder<'a> {
                     #[serde(rename = "type")]
@@ -325,9 +338,12 @@ pub struct Order {
 
 impl Client {
     pub fn new(key: &str, secret: &str, passphrase: &str) -> Client {
+        let ssl = NativeTlsClient::new().expect("Tls Client");
+        let connector = HttpsConnector::new(ssl);
+
         Client {
             public_client: super::public::Client::new(),
-            http_client: HttpClient::new(),
+            http_client: HttpClient::with_connector(connector),
             key: key.to_owned(),
             secret: secret.to_owned(),
             passphrase: passphrase.to_owned()
@@ -366,7 +382,7 @@ impl Client {
     }
 
     fn get_and_decode<T>(&self, path: &str) -> Result<T, Error>
-        where T: Deserialize
+        where for<'de> T: Deserialize<'de>
     {
         let headers = self.get_headers(path, "", "GET")?;
         let url = format!("{}{}", PRIVATE_API_URL, path);
@@ -382,7 +398,7 @@ impl Client {
     }
 
     fn post_and_decode<T>(&self, path: &str, body: &str) -> Result<T, Error>
-        where T: Deserialize
+        where for<'de> T: Deserialize<'de>
     {
         let headers = self.get_headers(path, body, "POST")?;
         let url = format!("{}{}", PRIVATE_API_URL, path);
@@ -400,7 +416,7 @@ impl Client {
     }
 
     fn delete_and_decode<T>(&self, path: &str) -> Result<T, Error>
-        where T: Deserialize
+        where for<'de> T: Deserialize<'de>
     {
         let headers = self.get_headers(path, "", "DELETE")?;
         let url = format!("{}{}", PRIVATE_API_URL, path);
