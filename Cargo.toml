@@ -11,7 +11,6 @@ version = "1.0.2"
 
 [dependencies]
 base64 = "0.6.0"
-chrono = { version = "0.4.0", features = ["serde"] }
 hyper = "0.10.12"
 hyper-native-tls = "0.2.4"
 rust-crypto = "0.2.36"
@@ -19,7 +18,22 @@ serde = "1.0.12"
 serde_derive = "1.0.12"
 serde_json = "1.0.3"
 time = "0.1.38"
-uuid = { version = "0.5.1", features = ["serde", "v4"] }
+
+[dependencies.chrono]
+features = ["serde"]
+version = "0.4.0"
+
+[dependencies.uuid]
+features = [
+    "serde",
+    "v4",
+]
+version = "0.5.1"
+
+[dependencies.ws]
+version = "*"
+features = ["ssl"]
 
 [dev-dependencies]
 env_logger = "0.4.3"
+

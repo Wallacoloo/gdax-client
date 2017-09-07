@@ -7,17 +7,21 @@ extern crate crypto;
 extern crate hyper;
 extern crate hyper_native_tls;
 extern crate serde;
+#[macro_use]
 extern crate serde_json;
 extern crate time;
 extern crate uuid;
+extern crate ws;
 
 use std::fmt;
 
 pub mod public;
 pub mod private;
+pub mod websocket;
 
 pub use public::Client as PublicClient;
 pub use private::Client as PrivateClient;
+pub use websocket::WebsocketClient as WebsocketClient;
 
 pub use private::NewOrder;
 pub use private::SizeOrFunds::{self, Funds, Size};
