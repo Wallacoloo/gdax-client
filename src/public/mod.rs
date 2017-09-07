@@ -1,4 +1,5 @@
-use chrono::{DateTime, UTC};
+use chrono::DateTime;
+use chrono::offset::Utc;
 use hyper::client::Client as HttpClient;
 use hyper::header::UserAgent;
 use hyper::net::HttpsConnector;
@@ -57,12 +58,12 @@ pub struct Tick {
     pub bid: String,
     pub ask: String,
     pub volume: String,
-    pub time: DateTime<UTC>
+    pub time: DateTime<Utc>
 }
 
 #[derive(Deserialize, Debug)]
 pub struct Trade {
-    pub time: DateTime<UTC>,
+    pub time: DateTime<Utc>,
     pub trade_id: u64,
     pub price: String,
     pub size: String,
@@ -96,7 +97,7 @@ pub struct Currency {
 
 #[derive(Deserialize, Debug)]
 pub struct Time {
-    pub iso: DateTime<UTC>,
+    pub iso: DateTime<Utc>,
     pub epoch: f64
 }
 
@@ -165,8 +166,8 @@ impl Client {
     // XXX: Returns invalid interval?
     pub fn get_historic_rates(&self,
                               product: &str,
-                              start_time: DateTime<UTC>,
-                              end_time: DateTime<UTC>,
+                              start_time: DateTime<Utc>,
+                              end_time: DateTime<Utc>,
                               granularity: u64)
         -> Result<Vec<Candle>, Error> {
 

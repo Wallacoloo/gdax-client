@@ -1,5 +1,6 @@
 use base64;
-use chrono::{DateTime, UTC};
+use chrono::DateTime;
+use chrono::offset::Utc;
 use crypto::hmac::Hmac;
 use crypto::mac::Mac;
 use crypto::sha2::Sha256;
@@ -42,7 +43,7 @@ pub type Ledger = Vec<LedgerEntry>;
 #[derive(Deserialize, Debug)]
 pub struct LedgerEntry {
     pub id: u64,
-    pub created_at: DateTime<UTC>,
+    pub created_at: DateTime<Utc>,
     pub amount: f64,
     pub balance: f64,
     #[serde(rename = "type")]
@@ -100,8 +101,8 @@ impl<'de> serde::Deserialize<'de> for EntryType {
 pub struct Hold {
     pub id: Uuid,
     pub account_id: Option<Uuid>,
-    pub created_at: DateTime<UTC>,
-    pub updated_at: Option<DateTime<UTC>>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: Option<DateTime<Utc>>,
     pub amount: f64,
     #[serde(rename = "type")]
     pub hold_type: HoldType,
@@ -316,7 +317,7 @@ pub struct OpenOrder {
     pub fill_fees: f64,
     pub settled: bool,
     pub side: Side,
-    pub created_at: DateTime<UTC>
+    pub created_at: DateTime<Utc>
 }
 
 #[derive(Deserialize, Debug)]
@@ -332,8 +333,8 @@ pub struct Order {
     pub product_id: String,
     pub fill_fees: f64,
     pub side: Side,
-    pub created_at: DateTime<UTC>,
-    pub done_at: Option<DateTime<UTC>>
+    pub created_at: DateTime<Utc>,
+    pub done_at: Option<DateTime<Utc>>
 }
 
 impl Client {
