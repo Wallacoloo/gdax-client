@@ -13,12 +13,6 @@ use super::Side;
 
 const PUBLIC_API_URL: &'static str = "https://api.gdax.com";
 
-pub enum Level {
-    Best    = 1,
-    Top50   = 2,
-    Full    = 3
-}
-
 #[derive(Deserialize, Debug)]
 pub struct Product {
     pub id: String,
@@ -134,37 +128,26 @@ impl Client {
         self.get_and_decode(&format!("{}/products", PUBLIC_API_URL))
     }
 
-    pub fn get_best_order(&self, product: &str) -> Result<OrderBook<BookEntry>, Error> {
-        self.get_and_decode(&format!("{}/products/{}/book?level={}",
-                                     PUBLIC_API_URL,
-                                     product,
-                                     Level::Best as u8))
-    }
-
-    pub fn get_top50_orders(&self, product: &str) -> Result<OrderBook<BookEntry>, Error> {
-        self.get_and_decode(&format!("{}/products/{}/book?level={}",
-                                     PUBLIC_API_URL,
-                                     product,
-                                     Level::Top50 as u8))
-    }
-
-    pub fn get_full_book(&self, product: &str) -> Result<OrderBook<FullBookEntry>, Error> {
-        self.get_and_decode(&format!("{}/products/{}/book?level={}",
-                                     PUBLIC_API_URL,
-                                     product,
-                                     Level::Full as u8))
+    pub fn get_product_order_book(&self, product: &str, level: u8) -> Result<OrderBook<BookEntry>, Error> {
+        match level {
+            1| 2| 3 => self.get_and_decode(&format!("{}/products/{}/book?level={}",
+                                                    PUBLIC_API_URL,
+                                                    product,
+                                                    level)),
+            _ => Err(Error::InvalidArgument("Orderbook level must be 1,2, or 3".to_string()))
+        }
     }
 
     pub fn get_product_ticker(&self, product: &str) -> Result<Tick, Error> {
         self.get_and_decode(&format!("{}/products/{}/ticker", PUBLIC_API_URL, product))
     }
 
-    pub fn get_trades(&self, product: &str) -> Result<Vec<Trade>, Error> {
+    pub fn get_product_trades(&self, product: &str) -> Result<Vec<Trade>, Error> {
         self.get_and_decode(&format!("{}/products/{}/trades", PUBLIC_API_URL, product))
     }
 
     // XXX: Returns invalid interval?
-    pub fn get_historic_rates(&self,
+    pub fn get_product_historic_rates(&self,
                               product: &str,
                               start_time: DateTime<Utc>,
                               end_time: DateTime<Utc>,
@@ -179,7 +162,7 @@ impl Client {
                                      granularity))
     }
 
-    pub fn get_24hr_stats(&self, product: &str) -> Result<Stats, Error> {
+    pub fn get_product_24hr_stats(&self, product: &str) -> Result<Stats, Error> {
         self.get_and_decode(&format!("{}/products/{}/stats", PUBLIC_API_URL, product))
     }
 

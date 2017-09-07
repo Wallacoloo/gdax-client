@@ -33,6 +33,7 @@ pub enum Error {
     Http(hyper::Error),
     InvalidSecretKey,
     Json(serde_json::Error),
+    InvalidArgument(String)
 }
 
 impl std::convert::From<base64::DecodeError> for Error {

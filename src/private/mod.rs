@@ -440,10 +440,12 @@ impl Client {
         self.get_and_decode(&format!("/accounts/{}", id))
     }
 
+    //todo pagination
     pub fn get_account_history(&self, id: Uuid) -> Result<Ledger, Error> {
         self.get_and_decode(&format!("/accounts/{}/ledger", id))
     }
 
+    //todo pagination
     pub fn get_account_holds(&self, id: Uuid) -> Result<Vec<Hold>, Error> {
         self.get_and_decode(&format!("/accounts/{}/holds", id))
     }
@@ -483,6 +485,7 @@ impl Client {
         self.get_and_decode(&format!("/orders?{}", status))
     }
 
+    //todo pagination
     pub fn get_orders(&self) -> Result<Vec<OpenOrder>, Error> {
         self.get_orders_with_status(true, true, true)
     }
