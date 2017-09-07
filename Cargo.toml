@@ -1,24 +1,25 @@
 [package]
-authors = ["Luqman Aden <me@luqman.ca>", "Kenan Sulayman <kenan@sly.mn>"]
-name = "gdax-client"
-version = "1.0.1"
-
-description = "Coinbase GDAX™ API client (tested with rust nightly 0.15.0)"
+authors = [
+    "Luqman Aden <me@luqman.ca>",
+    "Kenan Sulayman <kenan@sly.mn>",
+]
+description = "Coinbase GDAX™ API client"
 license = "MIT"
-
-repository = "https://github.com/KenanSulayman/gdax-client.git"
+name = "gdax-client"
+repository = "https://github.com/mahsu/gdax-client.git"
+version = "1.0.2"
 
 [dependencies]
-base64 = "0.5.2"
+base64 = "0.6.0"
 chrono = { version = "0.4.0", features = ["serde"] }
 hyper = "0.10.12"
 hyper-native-tls = "0.2.4"
 rust-crypto = "0.2.36"
-serde = "1.0.8"
-serde_derive = "1.0.8"
-serde_json = "1.0.2"
-time = "0.1.37"
-uuid = { version = "0.5.0", features = ["serde", "v4"] }
+serde = "1.0.12"
+serde_derive = "1.0.12"
+serde_json = "1.0.3"
+time = "0.1.38"
+uuid = { version = "0.5.1", features = ["serde", "v4"] }
 
 [dev-dependencies]
 env_logger = "0.4.3"
