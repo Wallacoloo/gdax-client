@@ -112,10 +112,9 @@ impl Client {
     fn get_and_decode<T>(&self, url: &str) -> Result<T, Error>
         where for<'de> T: Deserialize<'de>
     {
-
         let mut res = self.http_client.get(url)
-                                      .header(UserAgent("rust-gdax-client/0.1.0".to_owned()))
-                                      .send()?;
+            .header(UserAgent("rust-gdax-client/0.1.0".to_owned()))
+            .send()?;
 
         if !res.status.is_success() {
             return Err(Error::Api(de::from_reader(&mut res)?));
@@ -130,10 +129,10 @@ impl Client {
 
     pub fn get_product_order_book(&self, product: &str, level: u8) -> Result<OrderBook<BookEntry>, Error> {
         match level {
-            1| 2| 3 => self.get_and_decode(&format!("{}/products/{}/book?level={}",
-                                                    PUBLIC_API_URL,
-                                                    product,
-                                                    level)),
+            1 | 2 | 3 => self.get_and_decode(&format!("{}/products/{}/book?level={}",
+                                                      PUBLIC_API_URL,
+                                                      product,
+                                                      level)),
             _ => Err(Error::InvalidArgument("Orderbook level must be 1,2, or 3".to_string()))
         }
     }
@@ -148,12 +147,11 @@ impl Client {
 
     // XXX: Returns invalid interval?
     pub fn get_product_historic_rates(&self,
-                              product: &str,
-                              start_time: DateTime<Utc>,
-                              end_time: DateTime<Utc>,
-                              granularity: u64)
-        -> Result<Vec<Candle>, Error> {
-
+                                      product: &str,
+                                      start_time: DateTime<Utc>,
+                                      end_time: DateTime<Utc>,
+                                      granularity: u64)
+                                      -> Result<Vec<Candle>, Error> {
         self.get_and_decode(&format!("{}/products/{}/candles?start={}&end={}&granularity={}",
                                      PUBLIC_API_URL,
                                      product,

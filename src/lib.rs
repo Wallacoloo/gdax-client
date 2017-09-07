@@ -91,7 +91,6 @@ impl<'de> serde::Deserialize<'de> for Side {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where D: serde::Deserializer<'de>
     {
-
         struct SideVisitor;
 
         impl<'de> serde::de::Visitor<'de> for SideVisitor {

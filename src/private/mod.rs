@@ -73,7 +73,6 @@ pub enum EntryType {
 impl<'de> serde::Deserialize<'de> for EntryType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where D: serde::Deserializer<'de> {
-
         struct EntryTypeVisitor;
 
         impl<'de> serde::de::Visitor<'de> for EntryTypeVisitor {
@@ -122,7 +121,6 @@ pub enum HoldType {
 impl<'de> serde::Deserialize<'de> for HoldType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where D: serde::Deserializer<'de> {
-
         struct HoldTypeVisitor;
 
         impl<'de> serde::de::Visitor<'de> for HoldTypeVisitor {
@@ -352,8 +350,7 @@ impl Client {
     }
 
     fn signature(&self, path: &str, body: &str, timestamp: &str, method: &str)
-        -> Result<String, Error> {
-
+                 -> Result<String, Error> {
         let key = base64::decode(&self.secret)?;
         let what = format!("{}{}{}{}",
                            timestamp,
@@ -388,8 +385,8 @@ impl Client {
         let headers = self.get_headers(path, "", "GET")?;
         let url = format!("{}{}", PRIVATE_API_URL, path);
         let mut res = self.http_client.get(&url)
-                                      .headers(headers)
-                                      .send()?;
+            .headers(headers)
+            .send()?;
 
         if !res.status.is_success() {
             return Err(Error::Api(de::from_reader(&mut res)?));
@@ -404,10 +401,10 @@ impl Client {
         let headers = self.get_headers(path, body, "POST")?;
         let url = format!("{}{}", PRIVATE_API_URL, path);
         let mut res = self.http_client.post(&url)
-                                      .headers(headers)
-                                      .header(ContentType::json())
-                                      .body(body)
-                                      .send()?;
+            .headers(headers)
+            .header(ContentType::json())
+            .body(body)
+            .send()?;
 
         if !res.status.is_success() {
             return Err(Error::Api(de::from_reader(&mut res)?));
@@ -422,8 +419,8 @@ impl Client {
         let headers = self.get_headers(path, "", "DELETE")?;
         let url = format!("{}{}", PRIVATE_API_URL, path);
         let mut res = self.http_client.delete(&url)
-                                      .headers(headers)
-                                      .send()?;
+            .headers(headers)
+            .send()?;
 
         if !res.status.is_success() {
             return Err(Error::Api(de::from_reader(&mut res)?));
@@ -474,14 +471,14 @@ impl Client {
                                   open: bool,
                                   pending: bool,
                                   active: bool)
-        -> Result<Vec<OpenOrder>, Error>
+                                  -> Result<Vec<OpenOrder>, Error>
     {
         let status = [open, pending, active].iter()
-                                            .zip(["status=open", "status=pending", "status=active"].iter())
-                                            .filter(|&(&flag, _)| flag)
-                                            .map(|(_, &s)| s)
-                                            .collect::<Vec<_>>()
-                                            .join("&");
+            .zip(["status=open", "status=pending", "status=active"].iter())
+            .filter(|&(&flag, _)| flag)
+            .map(|(_, &s)| s)
+            .collect::<Vec<_>>()
+            .join("&");
         self.get_and_decode(&format!("/orders?{}", status))
     }
 
