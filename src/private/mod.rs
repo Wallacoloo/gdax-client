@@ -18,6 +18,7 @@ use uuid::Uuid;
 
 use super::Error;
 use super::Side;
+use super::serde_util::string_as_f64;
 
 const PRIVATE_API_URL: &'static str = "https://api.gdax.com";
 
@@ -32,8 +33,11 @@ pub struct Client {
 #[derive(Deserialize, Debug)]
 pub struct Account {
     pub id: Uuid,
+    #[serde(deserialize_with = "string_as_f64")]
     pub balance: f64,
+    #[serde(deserialize_with = "string_as_f64")]
     pub hold: f64,
+    #[serde(deserialize_with = "string_as_f64")]
     pub available: f64,
     pub currency: String
 }
@@ -44,7 +48,9 @@ pub type Ledger = Vec<LedgerEntry>;
 pub struct LedgerEntry {
     pub id: u64,
     pub created_at: DateTime<Utc>,
+    #[serde(deserialize_with = "string_as_f64")]
     pub amount: f64,
+    #[serde(deserialize_with = "string_as_f64")]
     pub balance: f64,
     #[serde(rename = "type")]
     pub entry_type: EntryType,
@@ -54,7 +60,7 @@ pub struct LedgerEntry {
 #[derive(Deserialize, Debug)]
 pub struct EntryDetails {
     pub order_id: Option<Uuid>,
-    pub trade_id: Option<u64>,
+    pub trade_id: Option<String>,
     pub product_id: Option<String>,
     pub transfer_id: Option<Uuid>,
     pub transfer_type: Option<String>

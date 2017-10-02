@@ -10,6 +10,7 @@ extern crate serde;
 #[macro_use]
 extern crate serde_json;
 extern crate time;
+extern crate type_name;
 extern crate uuid;
 extern crate ws;
 
@@ -18,6 +19,7 @@ use std::fmt;
 pub mod public;
 pub mod private;
 pub mod websocket;
+mod serde_util;
 
 pub use public::Client as PublicClient;
 pub use private::Client as PrivateClient;
