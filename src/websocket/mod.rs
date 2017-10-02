@@ -50,13 +50,13 @@ impl Handler for Client {
             "type":"heartbeat",
             "on": true
             });
-        self.ws_out.send(heartbeat.to_string());
+        self.ws_out.send(heartbeat.to_string())?;
 
         self.event_sender
             .send(Event::Connect(self.ws_out.clone()))
             .map_err(|err| Error::new(
                 ErrorKind::Internal,
-                format!("Unable to communicate between threads: {:?}.", err)));
+                format!("Unable to communicate between threads: {:?}.", err)))?;
 
         Ok(())
     }
@@ -87,11 +87,11 @@ impl Handler for Client {
 impl WebsocketClient {
     pub fn new() -> Self {
         let (tx, rx) = channel();
-        return Self {
+        Self {
             event_receiver: rx,
             event_sender: tx,
             websocket: None
-        };
+        }
     }
 
     pub fn connect(&mut self) {
@@ -119,22 +119,17 @@ impl WebsocketClient {
     }
 
     pub fn is_open(&self) -> bool {
-        match self.websocket {
-            Some(_) => true,
-            None => false
-        }
+        self.websocket.is_some()
     }
     pub fn close(&mut self) -> std::result::Result<(), ws::Error> {
-        let res = match self.websocket {
-            Some(ref ws_out) => ws_out.close(CloseCode::Normal),
-            None => Ok(())
-        };
+        let res = self.websocket.take().map_or(Ok(()), |ws_out| {
+            ws_out.close(CloseCode::Normal)
+        });
 
         if let Ok(Event::Disconnect) = self.event_receiver.recv() {
             println!("Websocket disconnected!");
         }
 
-        self.websocket = None;
-        return res;
+        res
     }
 }
